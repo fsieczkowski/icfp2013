@@ -3,16 +3,25 @@ module Test where
   import Eval
   import Data.Word
   import System.Random
-  import System.IO
-  import System.IO.Unsafe
+  import Data.Bits
 
   instance Random Word64 where
     randomR (lo, hi) g = (fromInteger n, g')
       where (n, g') = (randomR (toInteger lo, toInteger hi) g)
     random g = randomR (minBound, maxBound) g
   
+  simpleTests :: [Word64]
+  simpleTests = [0, -1] ++ [shiftL 1 n | n <- [0 .. 63]] ++ [rotateL (-2) n | n <- [0 .. 63]]
+
   test :: [Prog] -> IO ([Word64], [([Word64], [Prog])])
-  test progs = testAux 1024 ([], [([], progs)])
+  test progs = testAux 1024 (testKnown simpleTests ([], [([], progs)]))  
+               -- ([], [([], progs)])
+
+  testKnown [] res = res
+  testKnown (t : tests) (gtests, buckets) =
+    let (buckets', split) = foldr (splitBucket t) ([], False) buckets
+    in if split then testKnown tests (t : gtests, buckets')
+       else testKnown tests (gtests, buckets)
 
   testAux :: Integer -> ([Word64], [([Word64], [Prog])]) -> IO ([Word64], [([Word64], [Prog])])
   testAux runs (tests, buckets) =
@@ -23,14 +32,14 @@ module Test where
       let (buckets', split) = foldr (splitBucket n) ([], False) buckets
       if split then testAux (runs - 1) (n : tests, buckets')
         else testAux (runs - 1) (tests, buckets)
-    where
-      splitBucket n (ress, progs) (bs, flag) =
-        let insert [] n p = [(n:ress, [p])]
-            insert ((m:ress, ps) : bs) n p =
-              if n == m then ((m : ress, p : ps) : bs)
-              else (m : ress, ps) : insert bs n p
-            aux bucks [] = bucks
-            aux bucks (p : progs) =
-              aux (insert bucks (eval p n) p) progs
-            nbucks = aux [] progs
-        in (nbucks, if length nbucks == 1 then flag else True)
+
+  splitBucket n (ress, progs) (bs, flag) =
+    let insert [] n p = [(n:ress, [p])]
+        insert ((m:ress, ps) : bs) n p =
+          if n == m then ((m : ress, p : ps) : bs)
+          else (m : ress, ps) : insert bs n p
+        aux bucks [] = bucks
+        aux bucks (p : progs) =
+          aux (insert bucks (eval p n) p) progs
+        nbucks = aux [] progs
+    in (nbucks ++ bs, if length nbucks == 1 then flag else True)

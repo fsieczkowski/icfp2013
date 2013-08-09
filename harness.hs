@@ -17,14 +17,14 @@ module Harness where
 
   -- generate all the "simple" programs (w/o folds), get the tests and the result-coded buckets of programs
   -- returns a pair (tests, buckets); use the buckets later w/ findProgs function
-  runSimple depth uops bops =
-    let progs = genProgs depth uops bops
+  runSimple depth uops bops canIf =
+    let progs = genProgs depth uops bops canIf
     in churn progs
 
   -- generate all the programs with the 'tfold' operation, get the tests and the result-coded buckets of programs
   -- returns a pair (tests, buckets); use the buckets later w/ findProgs function
-  runTFold depth uops bops =
-    let progs = genProgsTFold depth uops bops
+  runTFold depth uops bops canIf =
+    let progs = genProgsTFold depth uops bops canIf
     in churn progs
 
   -- prints a list of words (e.g., tests) in hexadecimal. Also prints a trailing comma, cause I'm lazy

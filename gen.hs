@@ -2,33 +2,36 @@ module Gen where
   
   import Ast
 
-  genexps :: [Var] -> Integer -> [UnOp] -> [BinOp] -> [Exp]
-  genexps vars depth uops binops =
-    map (\ (x, y) -> x) . filter (\(x, y) -> y == depth) $ genAux vars depth uops binops
+  genexps :: [Var] -> Integer -> [UnOp] -> [BinOp] -> Bool -> [Exp]
+  genexps vars depth uops binops canIf =
+    map (\ (x, y) -> x) . filter (\(x, y) -> y == depth) $ genAux vars depth uops binops canIf
 
 
-  genAux vars 1 uops binops = (Zero, 1) : (One, 1) : map (\x -> (Var x, 1)) vars
-  genAux vars depth uops binops =
+  genAux vars 1 uops binops canIf = (Zero, 1) : (One, 1) : map (\x -> (Var x, 1)) vars
+  genAux vars depth uops binops canIf =
     if depth <= 0 then [] else
     (Zero, 1) : (One, 1) : map (\x -> (Var x, 1)) vars ++
     concatMap (\(exp, sz) -> map (\uop -> (UOp uop exp, sz + 1)) uops) sub ++
-    bops sub
+    bops sub ++ 
+    [(IfZ e1 e2 e3, sz1 + sz2 + sz3 + 1) | (e1, sz1) <- sub, (e2, sz2) <- sub, 
+       (e3, sz3) <- sub, sz1 + sz2 + sz3 < depth]
     where bops [] = []
           bops (xs @ ((e, sz) : xs')) =
             [(BOp bop e e', sz + sz' + 1) | bop <- binops, (e', sz') <- xs, sz + sz' < depth] ++
               bops xs'
-          sub = (genAux vars (depth - 1) uops binops)
+          sub = genAux vars (depth - 1) uops binops canIf
 
-  genProgs depth uops binops = 
-    map (Lam "x") . filter (sensible uops binops) $ genexps ["x"] (depth - 1) uops binops
+  genProgs depth uops binops canIf =
+    map (Lam "x") . filter (sensible uops binops) $ genexps ["x"] (depth - 1) uops binops canIf
 
-  genProgsTFold depth uops binops =
+  genProgsTFold depth uops binops canIf =
     map (\e -> Lam "x" (Fold (Var "x") Zero "x" "y" e)) . filter (sensible uops binops) $ 
-      genexps ["x", "y"] (depth - 5) uops binops
+      genexps ["x", "y"] (depth - 5) uops binops canIf
 
   sensible uops binops exp =
     isNothing (allUsed (uops, binops) exp) &&
-    if rshiftcnt uops > 1 then ordshifts 1 exp else True
+    (if rshiftcnt uops > 1 then ordshifts 1 exp else True) &&
+    rsSimpl exp
 
     where allUsed ([], []) exp  = Nothing
           allUsed ops Zero = Just ops
@@ -56,3 +59,19 @@ module Gen where
           ordshifts _ (IfZ e1 e2 e3) = ordshifts 1 e1 && ordshifts 1 e2 && ordshifts 1 e3
           ordshifts _ (Fold e1 e2 _ _ e3) = ordshifts 1 e1 && ordshifts 1 e2 && ordshifts 1 e3
           ordshifts _ _ = True
+
+          rsNot1 Shr4  = True
+          rsNot1 Shr16 = True
+          rsNot1 _ = False
+          
+          constant Zero = True
+          constant One  = True
+          constant _ = False
+
+          rsSimpl (UOp Shr1 Zero) = True
+          rsSimpl (UOp Shr1 One) = False
+          rsSimpl (UOp op exp) = if rsNot1 op && constant exp then False else rsSimpl exp
+          rsSimpl (BOp _ e1 e2) = rsSimpl e1 && rsSimpl e2
+          rsSimpl (IfZ e1 e2 e3) = rsSimpl e1 && rsSimpl e2 && rsSimpl e3
+          rsSimpl (Fold e1 e2 _ _ e3) = rsSimpl e1 && rsSimpl e2 && rsSimpl e3
+          rsSimpl _ = True
