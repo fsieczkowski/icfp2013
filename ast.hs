@@ -1,3 +1,4 @@
+module Ast where
 
 type Var   = String
 data UnOp  = Not | Shl1 | Shr1 | Shr4 | Shr16 
@@ -26,3 +27,6 @@ ppbop Plus = "plus"
 ppbop And  = "and"
 ppbop Or   = "or"
 ppbop Xor  = "xor"
+
+instance Show Exp  where show = ppexp
+instance Show Prog where show = pprint
