@@ -29,6 +29,7 @@ module Gen where
   sensible uops binops exp =
     isNothing (allUsed (uops, binops) exp) &&
     if rshiftcnt uops > 1 then ordshifts 1 exp else True
+
     where allUsed ([], []) exp  = Nothing
           allUsed ops Zero = Just ops
           allUsed ops One  = Just ops

@@ -3,6 +3,8 @@ module Harness where
   import Ast
   import Gen
   import Test
+  import Numeric
+  import Data.Word
   
   churn progs =
     do
@@ -24,6 +26,10 @@ module Harness where
   runTFold depth uops bops =
     let progs = genProgsTFold depth uops bops
     in churn progs
+
+  -- prints a list of words (e.g., tests) in hexadecimal. Also prints a trailing comma, cause I'm lazy
+  printTests :: [Word64] -> IO ()
+  printTests = mapM_ (putStrLn . flip showHex ", ")
 
   -- find the programs that match the list of results
   findProgs results buckets =
