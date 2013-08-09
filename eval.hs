@@ -1,10 +1,10 @@
 module Eval where
 
   import Data.Bits
-  import Data.Int
+  import Data.Word
   import Ast
 
-  eval :: Prog -> Int64 -> Int64
+  eval :: Prog -> Word64 -> Word64
   eval (Lam x e) n =
     evalExpr [(x, n)] e
     
