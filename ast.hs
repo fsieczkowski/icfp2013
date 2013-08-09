@@ -29,4 +29,6 @@ ppbop Or   = "or"
 ppbop Xor  = "xor"
 
 instance Show Exp  where show = ppexp
-instance Show Prog where show = pprint
+instance Show Prog where 
+  show = pprint
+  showList progs = \s -> concatMap (\prog -> pprint prog ++ "\n") progs ++ s
