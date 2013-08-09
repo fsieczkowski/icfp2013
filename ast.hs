@@ -1,8 +1,8 @@
 module Ast where
 
 type Var   = String
-data UnOp  = Not | Shl1 | Shr1 | Shr4 | Shr16 
-data BinOp = And | Or   | Xor  | Plus
+data UnOp  = Not | Shl1 | Shr1 | Shr4 | Shr16 deriving Eq
+data BinOp = And | Or   | Xor  | Plus deriving Eq
 data Exp   = Zero | One | Var Var | IfZ Exp Exp Exp | UOp UnOp Exp | BOp BinOp Exp Exp
            | Fold Exp Exp Var Var Exp
 data Prog  = Lam Var Exp

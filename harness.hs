@@ -6,11 +6,11 @@ module Harness where
   
   churn progs =
     do
-      print $ "Number of programs generated: " ++ show (length progs) ++ "\n"
+      putStrLn $ "Number of programs generated: " ++ show (length progs)
       (tests, buckets) <- test progs
-      print $ "Number of tests generated: " ++ show (length tests) ++ "\n"
-      print $ "Maximal number of programs in a bucket: " ++
-        show (maximum (map (\(rs, ps) -> length ps) buckets)) ++ "\n"
+      putStrLn $ "Number of tests generated: " ++ show (length tests)
+      putStrLn $ "Maximal number of programs in a bucket: " ++
+        show (maximum (map (\(rs, ps) -> length ps) buckets))
       return (tests, buckets)
 
   -- generate all the "simple" programs (w/o folds), get the tests and the result-coded buckets of programs
