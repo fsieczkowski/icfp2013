@@ -14,7 +14,7 @@ module Test where
   simpleTests = [0, -1] ++ [shiftL 1 n | n <- [0 .. 63]] ++ [rotateL (-2) n | n <- [0 .. 63]]
 
   test :: [Prog] -> IO ([Word64], [([Word64], [Prog])])
-  test progs = testAux 1024 (testKnown simpleTests ([], [([], progs)]))  
+  test progs = testAux 256 (testKnown simpleTests ([], [([], progs)]))  
                -- ([], [([], progs)])
 
   testKnown [] res = res

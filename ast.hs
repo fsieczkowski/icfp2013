@@ -16,6 +16,7 @@ ppexp (Var x) = x
 ppexp (IfZ e1 e2 e3) = "(if0 " ++ ppexp e1 ++ " " ++ ppexp e2 ++ " " ++ ppexp e3 ++ ")"
 ppexp (UOp o e) = "(" ++ ppuop o ++ " " ++ ppexp e ++ ")"
 ppexp (BOp o e1 e2) = "(" ++ ppbop o ++ " " ++ ppexp e1 ++ " " ++ ppexp e2 ++ ")"
+ppexp (Fold e1 e2 x y e3) = "(fold " ++ ppexp e1 ++ " " ++ ppexp e2 ++ " (lambda (" ++ x ++ " " ++ y ++ ") " ++ ppexp e3 ++ ")"
 
 ppuop Not   = "not"
 ppuop Shl1  = "shl1"

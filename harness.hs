@@ -5,7 +5,8 @@ module Harness where
   import Test
   import Numeric
   import Data.Word
-  
+  import System.Process
+
   churn progs =
     do
       putStrLn $ "Number of programs generated: " ++ show (length progs)
@@ -29,8 +30,13 @@ module Harness where
 
   -- prints a list of words (e.g., tests) in hexadecimal. Also prints a trailing comma, cause I'm lazy
   printTests :: [Word64] -> IO ()
-  printTests = mapM_ (putStrLn . flip showHex ", ")
+  printTests = print . map (\t -> "0x" ++ showHex t "")
 
   -- find the programs that match the list of results
   findProgs results buckets =
-    lookup results buckets
+    lookup (map read results) buckets
+
+  -- these do not work (malformed JSON, they say) and I don't get why.
+  reval id tests = readProcess "curl" ["-XPOST", "http://icfp2013lf.herokuapp.com/evaluess?auth=0229KtQKyHAgd8LaD0JPubHAC9InNBjCPTxnhVQBvpsH1H", "-d '{\"id\":\"" ++ id ++ "\", \"arguments\":" ++ show (map (\t -> "0x" ++ showHex t "") tests) ++ "}'"] ""
+  
+  rguess id prog = readProcess "curl" ["-XPOST", "http://icfp2013lf.herokuapp.com/guess?auth=0229KtQKyHAgd8LaD0JPubHAC9InNBjCPTxnhVQBvpsH1H", "-d '{\"id\":\"" ++ id ++ "\", \"arguments\":\"" ++ show prog ++ "\"}'"] ""
