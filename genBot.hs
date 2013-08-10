@@ -42,6 +42,10 @@ module GenBot where
           bins n (ys @ (((rs1, ps1) : xs) : ys')) =
             bins n (xs : ys') ++
             [(zipWith (evBOp bo) rs1 rs2, zipWith (BOp bo) ps1 ps2) | bo <- binops, sz >= 2* n + 1, (rs2, ps2) <- ys !! (sz - 2 * n - 1)]
-          ifs  = [] -- not implemented!
+          ifs  = if canIf && sz >= 4 then
+                   [(zipWith3 (\v1 v2 v3 -> if v1 == 0 then v2 else v3) rs1 rs2 rs3, zipWith3 IfZ ps1 ps2 ps3) |
+                    n1 <- [0 .. sz-4], n2 <- [0..sz - 4 - n1], (rs1, ps1) <- (subs !! n1),
+                    (rs2, ps2) <- (subs !! n2), (rs3, ps3) <- (subs !! (sz - n1 - n2 - 4))]
+                 else []
           folds = [] -- not implemented!
 
